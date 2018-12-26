@@ -1,4 +1,4 @@
-AWSDevOps - 4hathacker
+#AWSDevOps - 4hathacker
 
 This repo will contain all the templates and code files associated with 4hathacker AWSDevOps tutorial series. The objectives of tutorial covers the following topics:
 1. Provisioning and Orchestration of AWS resources using Ansible and CloudFormation
