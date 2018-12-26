@@ -1,0 +1,70 @@
+- name: webservers creation and load balancing
+  hosts: 127.0.0.1
+  connection: local
+  become: true
+  become_method: sudo
+  gather_facts: false
+  remote_user: "{{ app_code_user }}"
+  roles:
+    - create
+
+- name: nginx provisioning and load balancing
+  hosts: webserver
+  remote_user: "{{ app_code_user }}"
+  become: true
+  become_method: sudo
+  gather_facts: False
+  roles:
+    - web
+
+- name: spin up the load balancer and add the servers to it
+  hosts: 127.0.0.1
+  connection: local
+  gather_facts: False
+  tasks:
+    - name: setup a simple load balancer
+      ec2_elb_lb:
+        name: 4hathacker-elb
+        state: present
+        region: "{{ region }}"
+        zones:
+          - ap-southeast-1b
+        listeners:
+          - protocol: http
+            load_balancer_port: 80
+            instance_port: 80
+        health_check:
+          ping_protocol: http
+          ping_port: 80
+          ping_path: "/index.html"
+          response_timeout: 5
+          interval: 20
+          unhealthy_threshold: 3
+          healthy_threshold: 8
+      register: 4hathacker-elb
+
+    - name: find EC2 facts
+      ec2_instance_facts:
+         region: "{{ region }}"
+         filters:
+            "tag:env": "{{ env }}"
+            instance-state-name: running
+      register: ec2_facts
+
+    - name: extracting Instance IDs
+      set_fact:
+        ec2_instances: |
+          {% set instances = [] %}
+          {% for item in ec2_facts.instances -%}
+            {{ instances.append(item.instance_id) }}
+          {%- endfor %}
+          {{ instances }}
+
+    - name: add the webservers to the load balancer
+      local_action: ec2_elb
+      args:
+        instance_id: "{{ item }}"
+        ec2_elbs: 4hathacker-elb
+        state: present
+        region: "{{ region }}"
+      with_items: "{{ ec2_instances }}"

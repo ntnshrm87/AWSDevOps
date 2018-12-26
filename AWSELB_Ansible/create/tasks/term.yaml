@@ -1,0 +1,30 @@
+---
+- name: Check EC2 instances
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  tasks:
+    - name: Find EC2 facts
+      ec2_instance_facts:
+         region: "{{ region }}"
+         filters:
+           "tag:env": "{{ env }}"
+           instance-state-name: running
+      register: ec2_facts
+
+    - name: Filter EC2 instances
+      set_fact:
+        ec2_instances: |
+          {% set instances = [] %}
+          {% for item in ec2_facts.instances if item.state.name == 'running' -%}
+            {{ instances.append(item.instance_id) }}
+          {%- endfor %}
+          {{ instances }}
+
+    - name: Terminate EC2 server
+      ec2:
+        region: "{{ region }}"
+        instance_ids: "{{ item }}"
+        state: 'absent'
+      with_items: "{{ ec2_instances }}"

@@ -1,0 +1,10 @@
+region: ap-southeast-1
+instance_type: t2.micro
+ami: ami-0c5199d385b432989
+project_name: 4hathacker-ansible-tutorial
+env: mycloud
+app_code_user: "ubuntu" # remote user
+hoststring: "ansible_ssh_user=ubuntu ansible_ssh_private_key_file=./aws-private.pem"
+hostpath: "./hosts"
+
+

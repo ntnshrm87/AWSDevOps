@@ -1,0 +1,22 @@
+[local]
+localhost
+
+[webserver:vars]
+ansible_python_interpreter=/usr/bin/python3
+
+[webserver]
+54.255.213.1 ansible_ssh_user=ubuntu ansible_ssh_private_key_file=./aws-private.pem
+54.254.244.11 ansible_ssh_user=ubuntu ansible_ssh_private_key_file=./aws-private.pem
+
+
+
+
+
+
+
+
+
+
+
+
+
